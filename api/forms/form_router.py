@@ -44,7 +44,6 @@ async def get_form_data(
         user_id: str,
         form_id: str,
 ):
-
     form = forms_container.read_item(
         item=form_id,
     )
@@ -60,9 +59,9 @@ async def delete_form(
         current_user: User = Depends(get_current_user),
 
 ) -> None:
-
     if current_user.id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
+        # Verifies if the owner if the form and the user are the same
 
     try:
         form = forms_container.read_item(
@@ -72,13 +71,14 @@ async def delete_form(
 
         if form["owner_id"] != user_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
+            # Checks if the form belongs to the user
 
-    except azure.cosmos.exceptions.CosmosResourceNotFoundError:#type:ignore
+    except azure.cosmos.exceptions.CosmosResourceNotFoundError:  # type:ignore
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Form ''{form_id}'' does not exist.")
+        # If a form does not exist it can't be deleted
     forms_container.delete_item(
         item=form_id,
         partition_key=form_id,
     )
     return form
-
