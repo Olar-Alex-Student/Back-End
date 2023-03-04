@@ -53,25 +53,32 @@ async def get_form_data(
 @router.delete(path="/{form_id}",
                tags=['forms'])
 async def delete_form(
-        user_id: str = Path(example="Vizitiu Valentin",
-                            description="The email or name of the user."),
+        user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
+                            description="The id of the user."),
+        form_id: str = Path(example="f38f905c-caab-4565-bf49-969d0802fac4",
+                            description="The name of the form"),
         current_user: User = Depends(get_current_user),
-        form_id: str = Path(example="Vizitiu Valentin",
-                            description="The email or name of the user.")
-
 
 ) -> None:
 
     if current_user.id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
-    try:
-        forms_container.delete_item(
-            item = form_id,
-            partition_key=form_id,
 
+    try:
+        form = forms_container.read_item(
+            item=form_id,
+            partition_key=form_id,
         )
+
+        if form["owner_id"] != user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
+
     except azure.cosmos.exceptions.CosmosResourceNotFoundError:#type:ignore
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Form ''{form_id}'' does not exist.")
-
+    forms_container.delete_item(
+        item=form_id,
+        partition_key=form_id,
+    )
+    return form
 
