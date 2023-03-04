@@ -27,12 +27,12 @@ users_container: azure.cosmos.container.ContainerProxy = database.create_contain
 )
 
 form_key_path = PartitionKey(path="/id")
-forms_container = database.create_container_if_not_exists(
+forms_container: azure.cosmos.container.ContainerProxy  = database.create_container_if_not_exists(
     id=FORMS_CONTAINER_NAME, partition_key=form_key_path, offer_throughput=400
 )
 
 form_submits_key_path = PartitionKey(path="/id")
-form_submits_container = database.create_container_if_not_exists(
+form_submits_container: azure.cosmos.container.ContainerProxy  = database.create_container_if_not_exists(
     id=SUBMITTED_FORMS_CONTAINER_NAME, partition_key=form_key_path, offer_throughput=400
 )
 

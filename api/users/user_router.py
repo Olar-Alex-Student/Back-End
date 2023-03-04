@@ -164,6 +164,6 @@ async def delete_user(
 
     # User is guaranteed to exist, otherwise they cant authenticate
     users_container.delete_item(
-        item=current_user.name,
-        partition_key=current_user.name,
+        item=user_id,
+        partition_key=user_id,
     )
