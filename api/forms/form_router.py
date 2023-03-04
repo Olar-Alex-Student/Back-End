@@ -2,11 +2,12 @@
 --Careful with forms here, how to save the fields they have and all.
 - PUT update a form
 - GET all forms of a user"""
-from fastapi import APIRouter, Path, Depends, HTTPException, Depends, status
+from fastapi import APIRouter, Path, Depends, HTTPException, Depends, status, Request, Response
 from ..database.cosmo_db import forms_container
 from ..authentication.encryption import get_current_user
 from ..users.models import User
 import azure
+import qrcode
 
 router = APIRouter(
     prefix="/api/v1/users/{user_id}/forms"
@@ -33,14 +34,46 @@ async def edit_form_data(
 @router.get(path="/",
             tags=['forms'])
 async def get_all_user_forms(
+        user_id: str,
+        form_id: str,
+
+):
+    pass
+
+@router.get(path="/{form_id}/getQR",
+            tags=['forms'])
+async def get_form_qr_code(
+        request: Request,
         user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
                             description="The id of the user."),
         form_id: str = Path(example="f38f905c-caab-4565-bf49-969d0802fac4",
                             description="The name of the form"),
         current_user: User = Depends(get_current_user),
-
 ):
-    pass
+
+    if current_user.id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ony the form owner can generate a QR code.")
+
+    try:
+        form = forms_container.read_item(
+            item=form_id,
+            partition_key=form_id,
+        )
+    except azure.cosmos.exceptions.CosmosResourceNotFoundError:  # type:ignore
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Form ''{form_id}'' does not exist.")
+        # The form does not exist
+    url_to_send = '/'.join(request.url._url.split('/')[:-1])
+    # Create a link to the acces a form
+    img = qrcode.make(url_to_send)
+    img.save("form_qr_code.png")
+    # Converts the link in a qr code and saves the image
+    file = open("form_qr_code.png", "rb")
+    # Opens the image in byte format
+    return Response(content=file.read(), media_type="image/png")
+
+
+
 
 
 @router.get(path="/{form_id}",
