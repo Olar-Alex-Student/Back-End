@@ -39,7 +39,8 @@ class DynamicFieldData(BaseModel):
     options: Optional[list[str]] = None
 
 
-class NewFormular(BaseModel):
+class FormularCreate(BaseModel):
+    """Properties to receive when creating a new form."""
     title: str
     delete_form_date: int
     sections: list[DocumentSection]
@@ -70,7 +71,8 @@ class NewFormular(BaseModel):
         }
 
 
-class Formular(NewFormular):
+class FormularInDB(FormularCreate):
+    """How the formular is stored in the database."""
     id: str
     owner_id: str
 
@@ -99,3 +101,23 @@ class Formular(NewFormular):
                 ]
             }
         }
+
+
+class FormularUpdate(FormularCreate):
+    """
+    Properties to receive when updating a form.
+    We get the form id and user id from the path.
+    """
+    pass
+
+
+class ShortForm(BaseModel):
+    """A quick description of the forms, to be seen by a user browsing their own forms"""
+    id: str
+    title: str
+    delete_form_date: int
+
+
+class PaginatedFormularResponse(BaseModel):
+    """The list of forms to send when the user is browsing the forms they created"""
+    form_list: list[ShortForm]

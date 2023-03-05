@@ -6,11 +6,11 @@ import qrcode
 
 from fastapi import APIRouter, Depends, Request, Path, Response
 from ..database.cosmo_db import forms_container
-from .models import Formular, NewFormular, FieldType
-from .exceptions import *
+from .models import FormularInDB, FormularCreate, FormularUpdate, PaginatedFormularResponse, FieldType
 from ..authentication.encryption import get_current_user
 from ..users.models import User
-
+from .functions import get_tokens_from_rtf_text, get_formular_from_db
+from .exceptions import *
 
 router = APIRouter(
     prefix="/api/v1/users/{user_id}/forms"
@@ -21,9 +21,9 @@ router = APIRouter(
              tags=['forms'])
 async def create_new_form(
         user_id: str,
-        new_from: NewFormular,
+        new_from: FormularCreate,
         current_user: User = Depends(get_current_user)
-) -> Formular:
+) -> FormularInDB:
     if user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Path user_id does not match logged in user's id. You can create forms only for the"
@@ -57,9 +57,9 @@ async def create_new_form(
 
     new_form_id = str(uuid.uuid4())
 
-    formular = Formular(id=new_form_id,
-                        owner_id=user_id,
-                        **new_from.dict())
+    formular = FormularInDB(id=new_form_id,
+                            owner_id=user_id,
+                            **new_from.dict())
 
     # The new item created doesn't include empty values
     forms_container.create_item(
@@ -74,8 +74,24 @@ async def create_new_form(
 async def edit_form_data(
         user_id: str,
         form_id: str,
-):
-    pass
+        updated_from: FormularUpdate,
+        current_user: User = Depends(get_current_user)
+) -> FormularInDB:
+
+    # Try to see if the form exists, there is no function to only update for the CosmoDB, only upsert
+    # and we don't want to create a new form with an id given by the user
+    form = get_formular_from_db(form_id)
+
+    if form.owner_id != user_id or user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can modify only your own forms.")
+
+    form_to_save = FormularInDB(id=form_id,
+                                owner_id=user_id,
+                                **updated_from.dict(exclude_none=True))
+
+    forms_container.upsert_item(form_to_save.dict(exclude_none=True))
+
+    return form_to_save
 
 
 @router.get(path="/",
@@ -83,9 +99,9 @@ async def edit_form_data(
 async def get_all_user_forms(
         user_id: str,
         form_id: str,
-
-):
-    pass
+        current_user: User = Depends(get_current_user)
+) -> PaginatedFormularResponse:
+    ...
 
 
 @router.get(path="/{form_id}/getQR",
@@ -103,14 +119,8 @@ async def get_form_qr_code(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ony the form owner can generate a QR code.")
 
     # Check if form exists
-    try:
-        form = forms_container.read_item(
-            item=form_id,
-            partition_key=form_id,
-        )
-    except azure.cosmos.exceptions.CosmosResourceNotFoundError:  # type:ignore
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Form ''{form_id}'' does not exist.")
+    get_formular_from_db(form_id)
+
     # TODO: add a path parameter so we can receive this link from the frontend, and then make a QR code
     # TODO: ,right now it just sends the user to an api call in the backend, it should send them to something like /view
 
@@ -136,18 +146,10 @@ async def get_form_data(
         form_id: str = Path(example="f38f905c-caab-4565-bf49-969d0802fac4",
                             description="The name of the form"),
         current_user: User = Depends(get_current_user),
-):
+) -> FormularInDB:
 
-    try:
-        form = forms_container.read_item(
-            item=form_id,
-            partition_key=form_id,
-        )
-        return form
-    except azure.cosmos.exceptions.CosmosResourceNotFoundError:  # type:ignore
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Form ''{form_id}'' does not exist.")
-        # The form does not exist
+    # All users should be allowed to fetch a form, so they can complete it
+    return get_formular_from_db(form_id)
 
 
 @router.delete(path="/{form_id}",
@@ -159,25 +161,18 @@ async def delete_form(
                             description="The name of the form"),
         current_user: User = Depends(get_current_user),
 
-) -> None:
+) -> FormularInDB:
+
     if current_user.id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
         # Verifies if the owner if the form and the user are the same
 
-    try:
-        form = forms_container.read_item(
-            item=form_id,
-            partition_key=form_id,
-        )
+    form = get_formular_from_db(form_id)
 
-        if form["owner_id"] != user_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
-            # Checks if the form belongs to the user
+    if form.owner_id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own forms.")
+        # Checks if the form belongs to the user
 
-    except azure.cosmos.exceptions.CosmosResourceNotFoundError:  # type:ignore
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Form ''{form_id}'' does not exist.")
-        # If a form does not exist it can't be deleted
     forms_container.delete_item(
         item=form_id,
         partition_key=form_id,
