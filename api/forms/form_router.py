@@ -127,14 +127,20 @@ async def get_form_qr_code(
     except azure.cosmos.exceptions.CosmosResourceNotFoundError:  # type:ignore
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Form ''{form_id}'' does not exist.")
+    # TODO: add a path parameter so we can receive this link from the frontend, and then make a QR code
+    # TODO: ,right now it just sends the user to an api call in the backend, it should send them to something like /view
 
-    url_to_send = '/'.join(request.url._url.split('/')[:-1])
-    # Create a link to the acces a form
+    # Create a link to the access a form
+    current_url = request.url.path
+    url_to_send = '/'.join(current_url.split('/')[:-1])
+
+    # Converts the link in a qr code and saves the image
     img = qrcode.make(url_to_send)
     img.save("form_qr_code.png")
-    # Converts the link in a qr code and saves the image
+
+    # Opens the image in byte format, since that's what we can send
     file = open("form_qr_code.png", "rb")
-    # Opens the image in byte format
+
     return Response(content=file.read(), media_type="image/png")
 
 
