@@ -48,8 +48,7 @@ un site de completare automata a unor formulare.
    - [ ] Sterge un formular folosindu-se de id-ul primit pentru formular si utilizator.
 
 
-
-
+## Workflow:
 - Prima data cand un user intra pe site acesta este directionat catre "home page".
 - Acolo acesta are doua optiuni, inregistrare  sau autentificare. Cand prima este aleasa acesta are de completat
 cateva campuri urmand restrictiile impuse si dupa ce a introdus toate datele este apelata metoda "POST USER".
@@ -63,3 +62,4 @@ formularele ce ii apartin.
 - De asemenea un utilizator poate crea un formular "POST FORM" dupa propriile cerinte pe care ulterior il poate modifica
 "PUT FORM", permitand acestuia sa faca un cod QR pentru formularul respectiv, si cand nu ii mai este de folos il poate
 sterge "DELETE FORM".
+
