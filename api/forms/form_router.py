@@ -1,13 +1,16 @@
-import json
+
 import time
 import uuid
+import azure
+import qrcode
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Request, Path, Response
 from ..database.cosmo_db import forms_container
 from .models import Formular, NewFormular, FieldType
-from ..users.models import User
-from ..authentication.encryption import get_current_user
 from .exceptions import *
+from ..authentication.encryption import get_current_user
+from ..users.models import User
+
 
 router = APIRouter(
     prefix="/api/v1/users/{user_id}/forms"
@@ -94,26 +97,99 @@ async def edit_form_data(
 @router.get(path="/",
             tags=['forms'])
 async def get_all_user_forms(
-        user_id: str
+        user_id: str,
+        form_id: str,
+
 ):
     pass
+
+
+@router.get(path="/{form_id}/getQR",
+            tags=['forms'])
+async def get_form_qr_code(
+        request: Request,
+        user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
+                            description="The id of the user."),
+        form_id: str = Path(example="f38f905c-caab-4565-bf49-969d0802fac4",
+                            description="The name of the form"),
+        current_user: User = Depends(get_current_user),
+):
+
+    if current_user.id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ony the form owner can generate a QR code.")
+
+    # Check if form exists
+    try:
+        form = forms_container.read_item(
+            item=form_id,
+            partition_key=form_id,
+        )
+    except azure.cosmos.exceptions.CosmosResourceNotFoundError:  # type:ignore
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Form ''{form_id}'' does not exist.")
+
+    url_to_send = '/'.join(request.url._url.split('/')[:-1])
+    # Create a link to the acces a form
+    img = qrcode.make(url_to_send)
+    img.save("form_qr_code.png")
+    # Converts the link in a qr code and saves the image
+    file = open("form_qr_code.png", "rb")
+    # Opens the image in byte format
+    return Response(content=file.read(), media_type="image/png")
 
 
 @router.get(path="/{form_id}",
             tags=['forms'])
 async def get_form_data(
-        user_id: str,
-        form_id: str,
+        user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
+                            description="The id of the user."),
+        form_id: str = Path(example="f38f905c-caab-4565-bf49-969d0802fac4",
+                            description="The name of the form"),
+        current_user: User = Depends(get_current_user),
 ):
-    form = forms_container.read_item(
-        item=form_id,
-    )
+
+    try:
+        form = forms_container.read_item(
+            item=form_id,
+            partition_key=form_id,
+        )
+        return form
+    except azure.cosmos.exceptions.CosmosResourceNotFoundError:  # type:ignore
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Form ''{form_id}'' does not exist.")
+        # The form does not exist
 
 
 @router.delete(path="/{form_id}",
                tags=['forms'])
-async def create_new_form(
-        user_id: str,
-        form_id: str,
-):
-    pass
+async def delete_form(
+        user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
+                            description="The id of the user."),
+        form_id: str = Path(example="f38f905c-caab-4565-bf49-969d0802fac4",
+                            description="The name of the form"),
+        current_user: User = Depends(get_current_user),
+
+) -> None:
+    if current_user.id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
+        # Verifies if the owner if the form and the user are the same
+
+    try:
+        form = forms_container.read_item(
+            item=form_id,
+            partition_key=form_id,
+        )
+
+        if form["owner_id"] != user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
+            # Checks if the form belongs to the user
+
+    except azure.cosmos.exceptions.CosmosResourceNotFoundError:  # type:ignore
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Form ''{form_id}'' does not exist.")
+        # If a form does not exist it can't be deleted
+    forms_container.delete_item(
+        item=form_id,
+        partition_key=form_id,
+    )
+    return form
