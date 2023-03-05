@@ -9,7 +9,7 @@ from ..database.cosmo_db import forms_container
 from .models import FormularInDB, FormularCreate, FormularUpdate, PaginatedFormularResponse, FieldType
 from ..authentication.encryption import get_current_user
 from ..users.models import User
-from .functions import get_tokens_from_rtf_text, get_formular_from_db
+from .functions import get_tokens_from_rtf_text, get_formular_from_db, get_short_user_forms_from_db, validate_form_data
 from .exceptions import *
 
 router = APIRouter(
@@ -30,30 +30,7 @@ async def create_new_form(
                                    " use that's logged in.")
 
     # Validate the given form data
-    current_time = time.time()
-
-    if new_from.delete_form_date < current_time:
-        raise invalid_delete_form_date
-
-    valid_fields = []
-
-    for field_data in new_from.dynamic_fields:
-        valid_fields.append(field_data.placeholder)
-
-        if field_data.type.value in (FieldType.single_choice.value, FieldType.multiple_choice.value) \
-                and not field_data.options:
-            raise NoFieldOptionsProvided(field_data.placeholder, field_data.type.value)
-
-        if field_data.type.value not in (FieldType.single_choice.value, FieldType.multiple_choice.value) \
-                and not field_data.keywords:
-            raise NoFieldKeywordsProvided(field_data.placeholder, field_data.type.value)
-
-    for section in new_from.sections:
-        section_fields = get_tokens_from_rtf_text(section.text)
-
-        for field in section_fields:
-            if field not in valid_fields:
-                raise UnspecifiedField(field)
+    validate_form_data(new_from)
 
     new_form_id = str(uuid.uuid4())
 
@@ -85,6 +62,8 @@ async def edit_form_data(
     if form.owner_id != user_id or user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can modify only your own forms.")
 
+    validate_form_data(updated_from)
+
     form_to_save = FormularInDB(id=form_id,
                                 owner_id=user_id,
                                 **updated_from.dict(exclude_none=True))
@@ -96,12 +75,17 @@ async def edit_form_data(
 
 @router.get(path="/",
             tags=['forms'])
-async def get_all_user_forms(
+async def get_all_user_forms_description(
         user_id: str,
-        form_id: str,
         current_user: User = Depends(get_current_user)
 ) -> PaginatedFormularResponse:
-    ...
+
+    if user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can view only your own forms.")
+
+    forms = get_short_user_forms_from_db(user_id)
+
+    return forms
 
 
 @router.get(path="/{form_id}/getQR",

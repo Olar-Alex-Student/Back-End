@@ -1,10 +1,40 @@
-
+import time
 import azure.cosmos.exceptions
 
 from fastapi import HTTPException, status
 
 from ..database.cosmo_db import forms_container
-from .models import FormularInDB
+from .models import FormularInDB, FormularCreate, PaginatedFormularResponse, FieldType
+from .exceptions import invalid_delete_form_date, NoFieldOptionsProvided, NoFieldKeywordsProvided, UnspecifiedField
+
+
+def validate_form_data(form: FormularCreate):
+    """Takes a form and validates if it's data is correct."""
+
+    current_time = time.time()
+
+    if form.delete_form_date < current_time:
+        raise invalid_delete_form_date
+
+    valid_fields = []
+
+    for field_data in form.dynamic_fields:
+        valid_fields.append(field_data.placeholder)
+
+        if field_data.type.value in (FieldType.single_choice.value, FieldType.multiple_choice.value) \
+                and not field_data.options:
+            raise NoFieldOptionsProvided(field_data.placeholder, field_data.type.value)
+
+        if field_data.type.value not in (FieldType.single_choice.value, FieldType.multiple_choice.value) \
+                and not field_data.keywords:
+            raise NoFieldKeywordsProvided(field_data.placeholder, field_data.type.value)
+
+    for section in form.sections:
+        section_fields = get_tokens_from_rtf_text(section.text)
+
+        for field in section_fields:
+            if field not in valid_fields:
+                raise UnspecifiedField(field)
 
 
 def get_formular_from_db(form_id: str) -> FormularInDB:
@@ -26,6 +56,33 @@ def get_formular_from_db(form_id: str) -> FormularInDB:
                             )
 
     return FormularInDB(**form)
+
+
+def get_short_user_forms_from_db(user_id: str) -> PaginatedFormularResponse:
+    """
+    Returns the id, title and expiration date of all the forms of the user.
+
+    :param user_id: The id of the user to get the forms of
+
+    :return: The list of forms
+    """
+
+    # When getting the user it will be possible to search with both name or email
+    # So we can each by both at once, and works correctly
+
+    query = """SELECT form.id, form.title, form.delete_form_date
+                    FROM c form 
+                    WHERE form.owner_id = @user_id"""
+
+    params = [dict(name="@user_id", value=user_id)]
+
+    results = forms_container.query_items(query=query,
+                                          parameters=params,
+                                          enable_cross_partition_query=True)
+
+    items = list(results)
+
+    return PaginatedFormularResponse(form_list=items)
 
 
 def get_tokens_from_rtf_text(text: str):
