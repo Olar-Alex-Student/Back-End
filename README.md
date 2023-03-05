@@ -22,28 +22,28 @@ un site de completare automata a unor formulare.
 
 
 ## USERS:
-1. #### GET USER: http://127.0.0.1:8000/api/v1/users/{user_id}
+1. #### GET USER: https://bizoni-backend-apis.azurewebsites.net/docs#/users/{user_id}
    - [ ] Folosind un id-ul unui user returneaza datele despre acesta.
-2. #### POST USER: http://127.0.0.1:8000/api/v1/
+2. #### POST USER: https://bizoni-backend-apis.azurewebsites.net/docs#/
    - [ ] Creaza un user nou folosind datele trimise, verifica daca email-ul si numele trimise nu se regasesc 
    in baza de date si returneaza toate informatiile despre acesta.
-3. #### PUT USER: http://127.0.0.1:8000/api/v1/
+3. #### PUT USER: https://bizoni-backend-apis.azurewebsites.net/docs#/
    - [ ] Actualizeaza informatii despre un user folosind parametrii trimisi, numele utilizatorului nu poate fi schimbat.
-4. #### DELETE USER: http://127.0.0.1:8000/api/v1/
+4. #### DELETE USER: https://bizoni-backend-apis.azurewebsites.net/docs#/
    - [ ] Se foloseste de id-ul primit si in cazul in care coincide cu al detinatorului, contul va fi sters.
 
 
 ## FORMS:
-1. #### GET FORMS: http://127.0.0.1:8000/api/v1/users/{user_id}/forms/
+1. #### GET FORMS: https://bizoni-backend-apis.azurewebsites.net/docs#/users/{user_id}/forms/
    - [ ] Returneaza toate formularele pentru un anumit user.
-2. #### GET FORM BY ID: http://127.0.0.1:8000/api/v1/users/{user_id}/forms/{form_id}
+2. #### GET FORM BY ID: https://bizoni-backend-apis.azurewebsites.net/docs#/users/{user_id}/forms/{form_id}
    - [ ] Returneaza un formular folosind id-ul primit.
-3. #### GET FORM BY RQ: http://127.0.0.1:8000/api/v1/users/{user_id}/forms/{form_id}/getQR
+3. #### GET FORM BY RQ: https://bizoni-backend-apis.azurewebsites.net/docs#/users/{user_id}/forms/{form_id}/getQR
    - [ ] Folosese codul QR pentru a returna un formular.
-4. #### POST FORM: http://127.0.0.1:8000/api/v1/users/{user_id}/forms/
+4. #### POST FORM: https://bizoni-backend-apis.azurewebsites.net/docs#/users/{user_id}/forms/
    - [ ] Creaza un formular folosind datele trimise.
-5. #### PUT FORM: http://127.0.0.1:8000/api/v1/users/{user_id}/forms/{form_id}
+5. #### PUT FORM: https://bizoni-backend-apis.azurewebsites.net/docs#/users/{user_id}/forms/{form_id}
    - [ ] Actualizeaza informatii despre un formular.
-6. #### DELETE FORM: http://127.0.0.1:8000/api/v1/users/{user_id}/forms/{form_id}
+6. #### DELETE FORM: https://bizoni-backend-apis.azurewebsites.net/docs#/users/{user_id}/forms/{form_id}
    - [ ] Sterge un formular folosindu-se de id-ul primit pentru formular si utilizator.
 
