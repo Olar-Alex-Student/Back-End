@@ -23,7 +23,7 @@ un site de completare automata a unor formulare.
 
 ## USERS:
 1. #### GET USER: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}
-   - [ ] Folosind un id-ul unui user returneaza datele despre acesta.
+   - [ ] Folosind un id-ul unui user returneaza datele despre acesta. Unele restrictii sunt ca numele trebuie sa aiba cel putin 3 litere si un individ nu poate sa introduca un cod fiscal.
 2. #### POST USER: https://bizoni-backend-apis.azurewebsites.net/
    - [ ] Creaza un user nou folosind datele trimise, verifica daca email-ul si numele trimise nu se regasesc 
    in baza de date si returneaza toate informatiile despre acesta.
@@ -38,7 +38,7 @@ un site de completare automata a unor formulare.
    - [ ] Returneaza toate formularele pentru un anumit user.
 2. #### GET FORM BY ID: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}
    - [ ] Returneaza un formular folosind id-ul primit.
-3. #### GET FORM BY RQ: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/getQR
+3. #### GET FORM BY QR: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/getQR
    - [ ] Folosese codul QR pentru a returna un formular.
 4. #### POST FORM: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/
    - [ ] Creaza un formular folosind datele trimise.
@@ -47,3 +47,19 @@ un site de completare automata a unor formulare.
 6. #### DELETE FORM: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}
    - [ ] Sterge un formular folosindu-se de id-ul primit pentru formular si utilizator.
 
+
+
+
+- Prima data cand un user intra pe site acesta este directionat catre "home page".
+- Acolo acesta are doua optiuni, inregistrare  sau autentificare. Cand prima este aleasa acesta are de completat
+cateva campuri urmand restrictiile impuse si dupa ce a introdus toate datele este apelata metoda "POST USER".
+- A doua optiune ii cere acestuia sa introduca email-ul si parola iar in urma validarii acestora este apelata metoda "GET USER".
+Dupa ce este autentificat acesta are acces la informatiile proprii si le poate modifica "PUT USER" sau isi poate sterge
+contul "DELETE USER".
+- Acesta are acum acces la formulare, pentru a le accesa pe cele proprii se va apela metoda "GET FORMS" care va returna toate
+formularele ce ii apartin.
+- Pentru a ajunge la unul creea de alt user acesta are nevoie de un link "GET FORM BY ID" sau poate scana un cod QR
+"GET FROM BY QR".
+- De asemenea un utilizator poate crea un formular "POST FORM" dupa propriile cerinte pe care ulterior il poate modifica
+"PUT FORM", permitand acestuia sa faca un cod QR pentru formularul respectiv, si cand nu ii mai este de folos il poate
+sterge "DELETE FORM".
