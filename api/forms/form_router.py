@@ -1,15 +1,13 @@
 
-import time
 import uuid
-import azure
 import qrcode
 
 from fastapi import APIRouter, Depends, Request, Path, Response
 from ..database.cosmo_db import forms_container
-from .models import FormularInDB, FormularCreate, FormularUpdate, PaginatedFormularResponse, FieldType
+from .models import FormularInDB, FormularCreate, FormularUpdate, PaginatedFormularResponse
 from ..authentication.encryption import get_current_user
 from ..users.models import User
-from .functions import get_tokens_from_rtf_text, get_formular_from_db, get_short_user_forms_from_db, validate_form_data
+from .functions import get_formular_from_db, get_short_user_forms_from_db, validate_form_data
 from .exceptions import *
 
 router = APIRouter(

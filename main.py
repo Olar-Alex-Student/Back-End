@@ -4,6 +4,8 @@ import uvicorn
 
 from api.users import user_router
 from api.forms import form_router
+from api.form_submissions import submission_router
+
 from api.authentication import oath2
 
 description = """
@@ -35,6 +37,7 @@ app = FastAPI(
 
 app.include_router(user_router.router)
 app.include_router(form_router.router)
+app.include_router(submission_router.router)
 app.include_router(oath2.router)
 
 
