@@ -1,7 +1,7 @@
 import uuid
 import uuid as uuid_pkg
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from fastapi import Path
 from enum import Enum
 
@@ -14,7 +14,7 @@ class AccountType(str, Enum):
 
 class NewUser(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     password: str
     account_type: AccountType
     fiscal_code: str = ""
