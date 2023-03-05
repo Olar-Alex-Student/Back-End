@@ -8,16 +8,24 @@ from .models import FormularInDB, FormularCreate, PaginatedFormularResponse, Fie
 from .exceptions import invalid_delete_form_date, NoFieldOptionsProvided, NoFieldKeywordsProvided, UnspecifiedField
 
 
+SECONDS_IN_ONE_DAY = 24 * 60 * 60
+SECONDS_IN_SIXTY_DAY = SECONDS_IN_ONE_DAY * 60
+
+
 def validate_form_data(form: FormularCreate):
     """Takes a form and validates if it's data is correct."""
 
+    # Delete timestamp should be between 1 and 60 days
     current_time = time.time()
+    min_retention_time = current_time + SECONDS_IN_ONE_DAY
+    max_retention_time = current_time + SECONDS_IN_SIXTY_DAY
 
-    if form.delete_form_date < current_time:
+    if not min_retention_time < form.delete_form_date < max_retention_time:
         raise invalid_delete_form_date
 
     valid_fields = []
 
+    # individuals should NOT have fiscal code, but companies and public institutions should
     for field_data in form.dynamic_fields:
         valid_fields.append(field_data.placeholder)
 
@@ -29,6 +37,7 @@ def validate_form_data(form: FormularCreate):
                 and not field_data.keywords:
             raise NoFieldKeywordsProvided(field_data.placeholder, field_data.type.value)
 
+    # All placeholder keywords declared in the RTF text sections must be specified in the dynamic fields
     for section in form.sections:
         section_fields = get_tokens_from_rtf_text(section.text)
 
@@ -86,6 +95,12 @@ def get_short_user_forms_from_db(user_id: str) -> PaginatedFormularResponse:
 
 
 def get_tokens_from_rtf_text(text: str):
+    """
+    Example: "Studentul <nume>, <prenume>, <grupa>" => ['nume', 'prenume', 'grupa']
+
+    :param text: Text in RFT format
+    :return: a list of tokens extracted from the text
+    """
     tokens = []
     token = ""
 
