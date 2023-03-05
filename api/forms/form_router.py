@@ -17,22 +17,6 @@ router = APIRouter(
 )
 
 
-def get_tokens_from_rtf_text(text: str):
-    tokens = []
-    token = ""
-
-    for letter in text:
-        if letter == '<':
-            token = ''
-
-        if letter == '>' and len(token) > 1:
-            tokens.append(token[1:])
-
-        token += letter
-
-    return tokens
-
-
 @router.post(path="/",
              tags=['forms'])
 async def create_new_form(
