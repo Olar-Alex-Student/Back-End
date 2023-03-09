@@ -9,7 +9,7 @@ from ..authentication.encryption import get_current_user
 from ..users.models import User
 from .functions import get_formular_from_db, get_short_user_forms_from_db, validate_form_data
 from .exceptions import *
-
+from ..form_submissions.functions import delete_all_forms_submission
 router = APIRouter(
     prefix="/api/v1/users/{user_id}/forms"
 )
@@ -155,8 +155,11 @@ async def delete_form(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own forms.")
         # Checks if the form belongs to the user
 
+    await delete_all_forms_submission(form_id, user_id)
+
     forms_container.delete_item(
         item=form_id,
         partition_key=form_id,
     )
+
     return form

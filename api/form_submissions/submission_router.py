@@ -6,6 +6,7 @@ from ..users.models import User
 from ..authentication.encryption import get_current_user
 from ..forms.functions import get_formular_from_db
 from ..database.cosmo_db import form_submits_container
+from .functions import delete_all_forms_submission
 
 router = APIRouter(
     prefix="/api/v1/users/{user_id}/forms/{form_id}/submissions"
@@ -54,18 +55,18 @@ async def get_all_form_submissions(
 @router.delete(path="/{form_submission_id}",
                tags=["form submission"])
 async def delete_form_submission(
-        form_submission_id: str,
+        form_submission_id: str = Path(example="6244fe72-565a-425d-aa32-83bf83af1505",
+                                       description="The id of the form submission."),
         user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
                             description="The id of the user."),
         form_id: str = Path(example="f38f905c-caab-4565-bf49-969d0802fac4",
-                            description="The name of the form"),
+                            description="The id of the form"),
         current_user: User = Depends(get_current_user)
 
 ) -> FormSubmissionInDB:
-
     if current_user.id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
-        # Verifies if the owner if the form and the user are the same
+        # Verifies if the owner is the form and the user are the same
     try:
         form = get_formular_from_db(form_id)
     except azure.cosmos.exceptions.CosmosResourceNotFoundError:
@@ -81,18 +82,20 @@ async def delete_form_submission(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own forms")
         # Checks if the form belongs to the user
 
-    form_submits = form_submits_container.read_item
+    form_submits = form_submits_container.read_item(
+        item=form_submission_id,
+        partition_key=form_submission_id,
+    )
 
     if form_submits["form_id"] != form.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forms ids do not match")
         # Form id does not match
 
     form_submits_container.delete_item(
-        item = form_id,
-        partition_key = form_id,
+        item=form_submission_id,
+        partition_key=form_submission_id,
     )
     return FormSubmissionInDB(**form_submits)
-
 
 
 @router.delete(path="/",
@@ -101,53 +104,12 @@ async def delete_all_form_submission(
         user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
                             description="The id of the user."),
         form_id: str = Path(example="f38f905c-caab-4565-bf49-969d0802fac4",
-                            description="The name of the form"),
+                            description="The id of the form"),
         current_user: User = Depends(get_current_user)
 
-) -> FormSubmissionInDB:
+):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
+        # Verifies if the owner is the form and the user are the same
 
-    query = """SELECT form.id FROM c form WHERE form.form_id = @form_id"""
-
-    params = [dict(name="@form_id", value=form_id)]
-
-    results = form_submits_container.query_items(query=query,
-                                          parameters=params,
-                                          enable_cross_partition_query=True)
-
-    items = list(results)
-
-    result = []
-
-    for submited_form_id in items:
-        if current_user.id != user_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
-            # Verifies if the owner if the form and the user are the same
-        try:
-            form = get_formular_from_db(submited_form_id)
-        except azure.cosmos.exceptions.CosmosResourceNotFoundError:
-            form_submit = form_submits_container.delete_item(
-                item=submited_form_id,
-                partition_key=submited_form_id,
-            )
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail=f"Form ''{submited_form_id}'' does not exist."
-                                )
-
-        if form.owner_id != user_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own forms")
-            # Checks if the form belongs to the user
-
-        form_submits = form_submits_container.read_item
-
-        if form_submits["form_id"] != submited_form_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forms ids do not match")
-            # Form id does not match
-
-        form_submits_container.delete_item(
-            item = submited_form_id,
-            partition_key = submited_form_id,
-        )
-
-        result.append(FormSubmissionInDB(**form_submits))
-
-    return result
+    return await delete_all_forms_submission(form_id, user_id)
