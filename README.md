@@ -48,6 +48,19 @@ un site de completare automată a unor formulare.
    - [ ] Șterge un formular folosindu-se de id-ul primit pentru formular si utilizator.
 
 
+## FORM SUBMISSIONS:
+1. #### GET FORM SUBMISSIONS: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions
+   - [ ] Returneaza toate formularele completate dupa un anumit model.
+2. #### GET ONE FORM SUBMISSION: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions/{form_submission_id}
+   - [ ] Cauta si returneaza o submisie a unui formular dupa ID.
+3. #### POST FORM SUBMISSION: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions
+   - [ ] Creaza o submisie pentru un anumit formular.
+4. #### DELETE ALL FORM SUBMISSIONS: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions
+   - [ ] Sterge toate submisiile unui formular.
+5. #### DELETE ONE FORM SUBMISSION: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions/{form_submission_id}
+   - [ ] Sterge o submisie a unui formular folosind ID-ul acesteia.
+
+
 ## Workflow:
 - Prima dată când un user intră pe site acesta este direcționat către "home page".
 - Acolo acesta are doua opțiuni, înregistrare  sau autentificare. Când prima este aleasă acesta are de completat
