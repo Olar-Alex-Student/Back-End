@@ -1,8 +1,11 @@
 import azure
+import time
 
 from fastapi import HTTPException, status
 from ..database.cosmo_db import form_submits_container
 from ..forms.functions import get_formular_from_db
+from ..forms.functions import invalid_delete_form_date
+from .models import FormSubmissionCreate
 async def delete_all_forms_submission(form_id: str, user_id: str):
     query = """SELECT form.id FROM c form WHERE form.form_id = @form_id"""
 
@@ -36,3 +39,5 @@ async def delete_all_forms_submission(form_id: str, user_id: str):
         result += 1
 
     return f"Deleted {result} forms with success."
+
+# def validate_form_submission_data(form: FormSubmissionCreate):

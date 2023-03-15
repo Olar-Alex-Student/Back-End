@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from enum import Enum
 
 
 class FormSubmissionCreate(BaseModel):
@@ -38,3 +39,11 @@ class FormSubmissionInDB(FormSubmissionCreate):
                     "address": "7353 South St. Braintree, MA 02184"}
             }
         }
+
+
+class sorting_Order(str, Enum):
+    ascending = "ascending"
+    descending = "descending"
+
+
+sort_Order_to_bool = {"ascending": True, "descending": False}

@@ -25,7 +25,7 @@ async def create_new_form(
     if user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Path user_id does not match logged in user's id. You can create forms only for the"
-                                   " use that's logged in.")
+                                   " user that's logged in.")
 
     # Validate the given form data
     validate_form_data(new_from)
