@@ -93,16 +93,16 @@ async def get_form_qr_code(
         user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
                             description="The id of the user."),
         form_id: str = Path(example="f38f905c-caab-4565-bf49-969d0802fac4",
-                            description="The name of the form"),
+                            description="The id of the form"),
         current_user: User = Depends(get_current_user),
 ):
 
     if current_user.id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ony the form owner can generate a QR code.")
+    # Verifies if the form owner and the user are the same
 
-    # Check if form exists
     get_formular_from_db(form_id)
-
+    # Returns the form from the database
     # TODO: add a path parameter so we can receive this link from the frontend, and then make a QR code
     # TODO: ,right now it just sends the user to an api call in the backend, it should send them to something like /view
 
@@ -125,7 +125,7 @@ async def get_form_qr_code(
 async def get_form_data(
         user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
                             description="The id of the user."),
-        form_id: str = Path(example="f38f905c-caab-4565-bf49-969d0802fac4",
+        form_id: str = Path(example="67b64054-db84-489a-af92-fe87f9be9899",
                             description="The name of the form"),
         current_user: User = Depends(get_current_user),
 ) -> FormularInDB:
@@ -139,27 +139,30 @@ async def get_form_data(
 async def delete_form(
         user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
                             description="The id of the user."),
-        form_id: str = Path(example="f38f905c-caab-4565-bf49-969d0802fac4",
-                            description="The name of the form"),
+        form_id: str = Path(example="67b64054-db84-489a-af92-fe87f9be9899",
+                            description="The id of the form"),
         current_user: User = Depends(get_current_user),
 
 ) -> FormularInDB:
 
     if current_user.id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
-        # Verifies if the owner if the form and the user are the same
+        # Verifies if the owner is the form and the user are the same
 
     form = get_formular_from_db(form_id)
+    # Retrieves the form from the database
 
     if form.owner_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own forms.")
         # Checks if the form belongs to the user
 
     await delete_all_forms_submission(form_id, user_id)
+    # Before deleting the form it will delete all the form submissions
 
     forms_container.delete_item(
         item=form_id,
         partition_key=form_id,
     )
+    # Deletes the form from the database and returns it
 
     return form

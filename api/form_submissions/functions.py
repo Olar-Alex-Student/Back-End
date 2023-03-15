@@ -6,6 +6,8 @@ from ..database.cosmo_db import form_submits_container
 from ..forms.functions import get_formular_from_db
 from ..forms.functions import invalid_delete_form_date
 from .models import FormSubmissionCreate
+
+
 async def delete_all_forms_submission(form_id: str, user_id: str):
     query = """SELECT form.id FROM c form WHERE form.form_id = @form_id"""
 
@@ -16,6 +18,7 @@ async def delete_all_forms_submission(form_id: str, user_id: str):
                                                  enable_cross_partition_query=True)
 
     items = list(results)
+    # Returns a list of all the form submits that are created from the same form
 
     result = 0
 
@@ -25,6 +28,7 @@ async def delete_all_forms_submission(form_id: str, user_id: str):
         form = get_formular_from_db(form_id)
     except azure.cosmos.exceptions.CosmosResourceNotFoundError:
         pass
+    # Verifies if the form exists
 
     if form and form.owner_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own forms")
@@ -37,6 +41,7 @@ async def delete_all_forms_submission(form_id: str, user_id: str):
         )
 
         result += 1
+        # Deletes all the form submits and returns the number that it has deleted
 
     return f"Deleted {result} forms with success."
 
