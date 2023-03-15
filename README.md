@@ -68,10 +68,16 @@ câteva câmpuri urmând restricțiile impuse și după ce a introdus toate date
 - A doua opțiune îi cere acestuia să introducă email-ul și parola iar în urma validării acestora este apelată metoda "GET USER".
 După ce este autentificat acesta are acces la informațiile proprii și le poate modifica "PUT USER" sau își poate șterge
 contul "DELETE USER".
-- Acesta are acum acces la formulare, pentru a le accesa pe cele proprii se va apela metoda "GET FORMS" care va returna toate
+- Acesta are acum acces la formulare, pentru a le vizualiza pe cele proprii se va apela metoda "GET FORMS" care va returna toate
 formularele ce îi aparțin.
 - Pentru a ajunge la unul creat de alt user acesta are nevoie de un link "GET FORM BY ID" sau poate scana un cod QR
 "GET FROM BY QR".
 - De asemenea un utilizator poate crea un formular "POST FORM" după propriile cerințe pe care ulterior îl poate modifica
 "PUT FORM", permițând acestuia să facă un cod QR pentru formularul respectiv, și când nu îi mai este de folos îl poate
 șterge "DELETE FORM".
+- Dupa ce un user completeaza toate campurile necesare unui formular se face validarea acestora si se salveaza in baza de date
+folosindu-se medota "POST FORM SUBMISSION". Acel utilizator va avea mai apoi posibilitatea de a vizualiza un formular completat
+utilizandu-se metoda "GET FORM SUBMISSION" sau le va putea vizualiza pe toate care contin un sir de caractere specificat
+"GET ALL FORM SUBMISSIONS BY FORM DATA".
+- Un formular completat poate fi ulterior editat metoda "EDIT FORM SUBMISSION" venindu-ne in ajutor.
+- Iar la cerere acestea pot fi sterse individual "DELETE FORM SUBMISSION" sau colectiv "DELETE ALL FORM SUBMISSIONS".
