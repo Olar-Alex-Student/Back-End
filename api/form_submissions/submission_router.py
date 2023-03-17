@@ -1,3 +1,4 @@
+import time
 import uuid
 
 import azure.cosmos.exceptions
@@ -10,6 +11,7 @@ from .functions import validate_form_submission, get_form_submission_from_db, de
 from ..forms.functions import get_formular_from_db
 from ..database.cosmo_db import form_submits_container
 
+SECONDS_IN_ONE_DAY = 60 * 60 * 24
 
 router = APIRouter(
     prefix="/api/v1/users/{user_id}/forms/{form_id}/submissions"
@@ -32,12 +34,17 @@ async def add_form_submission(
     # Validate the new submission
     await validate_form_submission(form, new_from_submission)
 
+    current_time = time.time()
+    form_submission_expiration_date = current_time + form.data_retention_period * SECONDS_IN_ONE_DAY
+
     new_submission_id = str(uuid.uuid4())
 
     new_from_submission = FormSubmissionInDB(
         id=new_submission_id,
         form_id=form_id,
         user_that_completed_id=current_user.id,
+        submission_expiration_time=form_submission_expiration_date,
+        submission_creation_time=current_time,
         **new_from_submission.dict()
     )
 
@@ -75,19 +82,15 @@ async def update_form_submission(
     await validate_form_submission(form, updated_from_submission)
 
     # Create the updated submission
-    updated_from_submission = FormSubmissionInDB(
-        id=form_submission_id,
-        form_id=form_id,
-        user_that_completed_id=form_submission.user_that_completed_id,
-        **updated_from_submission.dict()
-    )
+    # Only the completed dynamic fields can be updated
+    form_submission.completed_dynamic_fields = updated_from_submission.completed_dynamic_fields
 
     # Update the submission
     form_submits_container.upsert_item(
-        updated_from_submission.dict(exclude_none=True)
+        form_submission.dict(exclude_none=True)
     )
 
-    return updated_from_submission
+    return form_submission
 
 
 @router.get(path="/{form_submission_id}",
@@ -179,8 +182,9 @@ async def get_all_form_submissions_by_form_data(
                                                  enable_cross_partition_query=True)
 
     form_submissions_list = list(results)
-    form_submissions_list = sorted(form_submissions_list, key=lambda x: x["submission_time"],
+    form_submissions_list = sorted(form_submissions_list, key=lambda x: x["submission_expiration_time"],
                                    reverse=sort_Order_to_bool[sort_order.value])
+
     mach_list = []
     for submission in form_submissions_list:
         for field in submission["completed_dynamic_fields"]:

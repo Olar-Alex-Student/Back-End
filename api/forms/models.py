@@ -42,7 +42,7 @@ class DynamicFieldData(BaseModel):
 class FormularCreate(BaseModel):
     """Properties to receive when creating a new form."""
     title: str
-    delete_form_date: int
+    data_retention_period: int
     sections: list[DocumentSection]
     dynamic_fields: list[DynamicFieldData]
 
@@ -50,7 +50,7 @@ class FormularCreate(BaseModel):
         schema_extra = {
             "example": {
                 "title": "Document Permis Conducere",
-                "delete_form_date": "1680619808",
+                "data_retention_period": 30,
                 "sections": [
                     {
                         "scan_document_type": "student_card",
@@ -82,7 +82,7 @@ class FormularInDB(FormularCreate):
                 "id": "9dbfce20-a68c-40e4-ae42-d75f73cf2a6c",
                 "owner_id": "1398589c-1e13-48b5-9c89-d2c8ed26fcaf",
                 "title": "Document Permis Conducere",
-                "delete_form_date": "1680619808",
+                "data_retention_period": 30,
                 "sections": [
                     {
                         "scan_document_type": "student_card",
@@ -115,7 +115,6 @@ class ShortForm(BaseModel):
     """A quick description of the forms, to be seen by a user browsing their own forms"""
     id: str
     title: str
-    delete_form_date: int
 
 
 class PaginatedFormularResponse(BaseModel):

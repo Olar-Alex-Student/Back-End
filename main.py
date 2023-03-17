@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 import uvicorn
@@ -6,6 +8,9 @@ from api.users import user_router
 from api.forms import form_router
 from api.form_submissions import submission_router
 from api.utility import utility_router
+
+from background_tasks.delete_old_submissions import delete_expired_form_submissions
+
 
 from api.authentication import oath2
 
@@ -60,6 +65,13 @@ app.include_router(form_router.router)
 app.include_router(submission_router.router)
 app.include_router(utility_router.router)
 app.include_router(oath2.router)
+
+
+# Adds a background task to run every day to delete old submissions
+@app.on_event("startup")
+async def schedule_periodic():
+    loop = asyncio.get_event_loop()
+    loop.create_task(delete_expired_form_submissions())
 
 
 @app.get("/", include_in_schema=False)

@@ -5,23 +5,16 @@ from fastapi import HTTPException, status
 
 from ..database.cosmo_db import forms_container
 from .models import FormularInDB, FormularCreate, PaginatedFormularResponse, FieldType
-from .exceptions import invalid_delete_form_date, NoFieldOptionsProvided, NoFieldKeywordsProvided, UnspecifiedField
-
-
-SECONDS_IN_ONE_DAY = 24 * 60 * 60
-SECONDS_IN_SIXTY_DAY = SECONDS_IN_ONE_DAY * 60
+from .exceptions import invalid_data_retention_period, NoFieldOptionsProvided, NoFieldKeywordsProvided, UnspecifiedField
 
 
 def validate_form_data(form: FormularCreate):
     """Takes a form and validates if it's data is correct."""
 
-    # Delete timestamp should be between 1 and 60 days
-    current_time = time.time()
-    min_retention_time = current_time + SECONDS_IN_ONE_DAY
-    max_retention_time = current_time + SECONDS_IN_SIXTY_DAY
+    # data_retention_period should be between 1 and 60 days
 
-    if not min_retention_time < form.delete_form_date < max_retention_time:
-        raise invalid_delete_form_date
+    if not (1 < form.data_retention_period < 60):
+        raise invalid_data_retention_period
 
     valid_fields = []
 
@@ -70,7 +63,7 @@ def get_formular_from_db(form_id: str) -> FormularInDB:
 
 def get_short_user_forms_from_db(user_id: str) -> PaginatedFormularResponse:
     """
-    Returns the id, title and expiration date of all the forms of the user.
+    Returns the id and title of all the forms of the user.
 
     :param user_id: The id of the user to get the forms of
 
@@ -80,7 +73,7 @@ def get_short_user_forms_from_db(user_id: str) -> PaginatedFormularResponse:
     # When getting the user it will be possible to search with both name or email
     # So we can each by both at once, and works correctly
 
-    query = """SELECT form.id, form.title, form.delete_form_date
+    query = """SELECT form.id, form.title
                     FROM c form 
                     WHERE form.owner_id = @user_id"""
 

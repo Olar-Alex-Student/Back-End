@@ -1,9 +1,8 @@
 from fastapi import HTTPException, status
 
-invalid_delete_form_date = HTTPException(
+invalid_data_retention_period = HTTPException(
     status_code=status.HTTP_400_BAD_REQUEST,
-    detail="'delete_form_date' should should be between 1 and 60 days in the future. "
-           "Provide the unix timestamp.")
+    detail="'data_retention_period' should should be between 1 and 60.")
 
 
 class UnspecifiedField(HTTPException):
