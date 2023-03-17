@@ -59,9 +59,10 @@ def get_formular_from_db(form_id: str) -> FormularInDB:
             item=form_id,
             partition_key=form_id,
         )
+
     except azure.cosmos.exceptions.CosmosResourceNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Form ''{form_id}'' does not exist."
+                            detail=f"Form '{form_id}' does not exist."
                             )
 
     return FormularInDB(**form)

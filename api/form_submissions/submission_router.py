@@ -7,7 +7,7 @@ from ..users.models import User
 from ..authentication.encryption import get_current_user
 from ..forms.functions import get_formular_from_db
 from ..database.cosmo_db import form_submits_container
-from .functions import validate_form_submission
+from .functions import validate_form_submission, get_form_submission_from_db
 
 router = APIRouter(
     prefix="/api/v1/users/{user_id}/forms/{form_id}/submissions"
@@ -55,7 +55,37 @@ async def update_form_submission(
         updated_from_submission: FormSubmissionUpdate,
         current_user: User = Depends(get_current_user)
 ) -> FormSubmissionInDB:
-    ...
+    # Check if form exists
+    form = get_formular_from_db(form_id)
+
+    # Verify if the submission exists
+    # Raises an exception if the submission does not exist
+    form_submission = await get_form_submission_from_db(form_submission_id)
+
+    # Verify if they are allowed to update the submission
+    if form.owner_id != current_user.id and form_submission.user_that_completed_id != current_user:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not allowed to update this submission"
+        )
+
+    # Validate the new submission
+    await validate_form_submission(form, updated_from_submission)
+
+    # Create the updated submission
+    updated_from_submission = FormSubmissionInDB(
+        id=form_submission_id,
+        form_id=form_id,
+        user_that_completed_id=form_submission.user_that_completed_id,
+        **updated_from_submission.dict()
+    )
+
+    # Update the submission
+    form_submits_container.upsert_item(
+        updated_from_submission.dict(exclude_none=True)
+    )
+
+    return updated_from_submission
 
 
 @router.get(path="/{form_submission_id}",
