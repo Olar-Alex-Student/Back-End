@@ -1,16 +1,16 @@
 # Back-End
 ## Back-End-ul echipei Bizonii în concursul Assist Tech Challenge.
  
-Aplicatia a fost realizata folosind fastAPI, un framework rapid ce foloseste Python 3.7+
+Aplicația a fost realizată folosind fastAPI, un framework rapid ce folosește Python 3.7+
 
-Aceasta dezvolta un API care foloseste o baza de date a unor utilizatori sunt logati pe
-un site de completare automata a unor formulare.
+Aceasta dezvoltă un API care folosește o baza de date a unor utilizatori sunt logați pe
+un site de completare automată a unor formulare.
 
-### Comanda pe care o folosim pentru a mentine serverul pornit este:
+### Comanda pe care o folosim pentru a menține serverul pornit este:
 ```"uvicorn main:app --reload"```
 
 
-## Aplicatia are 4 functii principale GET, POST, PUT, DELETE:
+## Aplicația are 4 funcții principale GET, POST, PUT, DELETE:
 1. ### GET:
    - #### Această comandă HTTP este utilizată pentru a obține informații de la server. În general, cererea este însoțită de un URL și, uneori, de parametri suplimentari care pot fi utilizați pentru a filtra sau sorta datele returnate. Serverul răspunde cu informațiile solicitate, care sunt de obicei afișate într-un browser sau utilizate într-un alt fel de către client.
 2. ### POST:
@@ -23,43 +23,61 @@ un site de completare automata a unor formulare.
 
 ## USERS:
 1. #### GET USER: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}
-   - [ ] Folosind un id-ul unui user returneaza datele despre acesta. Unele restrictii sunt ca numele trebuie sa aiba cel putin 3 litere si un individ nu poate sa introduca un cod fiscal.
+   - [ ] Folosind un id-ul unui user returnează datele despre acesta. Unele restricții sunt că numele trebuie sa aibă cel puțin 3 litere și un individ nu poate să introducă un cod fiscal.
 2. #### POST USER: https://bizoni-backend-apis.azurewebsites.net/
-   - [ ] Creaza un user nou folosind datele trimise, verifica daca email-ul si numele trimise nu se regasesc 
-   in baza de date si returneaza toate informatiile despre acesta.
+   - [ ] Crează un user nou folosind datele trimise, verifică dacă email-ul și numele trimise nu se regăsesc 
+   în baza de date și returnează toate informațiile despre acesta.
 3. #### PUT USER: https://bizoni-backend-apis.azurewebsites.net/
-   - [ ] Actualizeaza informatii despre un user folosind parametrii trimisi, numele utilizatorului nu poate fi schimbat.
+   - [ ] Actualizează informații despre un user folosind parametrii trimiși, numele utilizatorului nu poate fi schimbat.
 4. #### DELETE USER: https://bizoni-backend-apis.azurewebsites.net/
-   - [ ] Se foloseste de id-ul primit si in cazul in care coincide cu al detinatorului, contul va fi sters.
+   - [ ] Se folosește de id-ul primit și in cazul în care coincide cu al deținatorului, contul va fi șters.
 
 
 ## FORMS:
 1. #### GET FORMS: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/
-   - [ ] Returneaza toate formularele pentru un anumit user.
+   - [ ] Returnează toate formularele pentru un anumit user.
 2. #### GET FORM BY ID: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}
-   - [ ] Returneaza un formular folosind id-ul primit.
+   - [ ] Returnează un formular folosind id-ul primit.
 3. #### GET FORM BY QR: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/getQR
-   - [ ] Folosese codul QR pentru a returna un formular.
+   - [ ] Folosește codul QR pentru a returna un formular.
 4. #### POST FORM: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/
-   - [ ] Creaza un formular folosind datele trimise.
+   - [ ] Crează un formular folosind datele trimise.
 5. #### PUT FORM: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}
-   - [ ] Actualizeaza informatii despre un formular.
+   - [ ] Actualizează informații despre un formular.
 6. #### DELETE FORM: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}
-   - [ ] Sterge un formular folosindu-se de id-ul primit pentru formular si utilizator.
+   - [ ] Șterge un formular folosindu-se de id-ul primit pentru formular si utilizator.
+
+
+## FORM SUBMISSIONS:
+1. #### GET FORM SUBMISSIONS: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions
+   - [ ] Returneaza toate formularele completate dupa un anumit model.
+2. #### GET ONE FORM SUBMISSION: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions/{form_submission_id}
+   - [ ] Cauta si returneaza o submisie a unui formular dupa ID.
+3. #### POST FORM SUBMISSION: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions
+   - [ ] Creaza o submisie pentru un anumit formular.
+4. #### DELETE ALL FORM SUBMISSIONS: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions
+   - [ ] Sterge toate submisiile unui formular.
+5. #### DELETE ONE FORM SUBMISSION: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions/{form_submission_id}
+   - [ ] Sterge o submisie a unui formular folosind ID-ul acesteia.
 
 
 ## Workflow:
-- Prima data cand un user intra pe site acesta este directionat catre "home page".
-- Acolo acesta are doua optiuni, inregistrare  sau autentificare. Cand prima este aleasa acesta are de completat
-cateva campuri urmand restrictiile impuse si dupa ce a introdus toate datele este apelata metoda "POST USER".
-- A doua optiune ii cere acestuia sa introduca email-ul si parola iar in urma validarii acestora este apelata metoda "GET USER".
-Dupa ce este autentificat acesta are acces la informatiile proprii si le poate modifica "PUT USER" sau isi poate sterge
+- Prima dată când un user intră pe site acesta este direcționat către "home page".
+- Acolo acesta are doua opțiuni, înregistrare  sau autentificare. Când prima este aleasă acesta are de completat
+câteva câmpuri urmând restricțiile impuse și după ce a introdus toate datele este apelată metoda "POST USER".
+- A doua opțiune îi cere acestuia să introducă email-ul și parola iar în urma validării acestora este apelată metoda "GET USER".
+După ce este autentificat acesta are acces la informațiile proprii și le poate modifica "PUT USER" sau își poate șterge
 contul "DELETE USER".
-- Acesta are acum acces la formulare, pentru a le accesa pe cele proprii se va apela metoda "GET FORMS" care va returna toate
-formularele ce ii apartin.
-- Pentru a ajunge la unul creea de alt user acesta are nevoie de un link "GET FORM BY ID" sau poate scana un cod QR
+- Acesta are acum acces la formulare, pentru a le vizualiza pe cele proprii se va apela metoda "GET FORMS" care va returna toate
+formularele ce îi aparțin.
+- Pentru a ajunge la unul creat de alt user acesta are nevoie de un link "GET FORM BY ID" sau poate scana un cod QR
 "GET FROM BY QR".
-- De asemenea un utilizator poate crea un formular "POST FORM" dupa propriile cerinte pe care ulterior il poate modifica
-"PUT FORM", permitand acestuia sa faca un cod QR pentru formularul respectiv, si cand nu ii mai este de folos il poate
-sterge "DELETE FORM".
-
+- De asemenea un utilizator poate crea un formular "POST FORM" după propriile cerințe pe care ulterior îl poate modifica
+"PUT FORM", permițând acestuia să facă un cod QR pentru formularul respectiv, și când nu îi mai este de folos îl poate
+șterge "DELETE FORM".
+- Dupa ce un user completeaza toate campurile necesare unui formular se face validarea acestora si se salveaza in baza de date
+folosindu-se medota "POST FORM SUBMISSION". Acel utilizator va avea mai apoi posibilitatea de a vizualiza un formular completat
+utilizandu-se metoda "GET FORM SUBMISSION" sau le va putea vizualiza pe toate care contin un sir de caractere specificat
+"GET ALL FORM SUBMISSIONS BY FORM DATA".
+- Un formular completat poate fi ulterior editat metoda "EDIT FORM SUBMISSION" venindu-ne in ajutor.
+- Iar la cerere acestea pot fi sterse individual "DELETE FORM SUBMISSION" sau colectiv "DELETE ALL FORM SUBMISSIONS".
