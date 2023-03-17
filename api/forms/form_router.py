@@ -1,8 +1,7 @@
 
 import uuid
-import qrcode
 
-from fastapi import APIRouter, Depends, Request, Path, Response
+from fastapi import APIRouter, Depends, Path
 from ..database.cosmo_db import forms_container
 from .models import FormularInDB, FormularCreate, FormularUpdate, PaginatedFormularResponse
 from ..authentication.encryption import get_current_user
@@ -84,40 +83,6 @@ async def get_all_user_forms_description(
     forms = get_short_user_forms_from_db(user_id)
 
     return forms
-
-
-@router.get(path="/{form_id}/getQR",
-            tags=['forms'])
-async def get_form_qr_code(
-        request: Request,
-        user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
-                            description="The id of the user."),
-        form_id: str = Path(example="f38f905c-caab-4565-bf49-969d0802fac4",
-                            description="The id of the form"),
-        current_user: User = Depends(get_current_user),
-):
-
-    if current_user.id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ony the form owner can generate a QR code.")
-    # Verifies if the form owner and the user are the same
-
-    get_formular_from_db(form_id)
-    # Returns the form from the database
-    # TODO: add a path parameter so we can receive this link from the frontend, and then make a QR code
-    # TODO: ,right now it just sends the user to an api call in the backend, it should send them to something like /view
-
-    # Create a link to the access a form
-    current_url = request.url.path
-    url_to_send = '/'.join(current_url.split('/')[:-1])
-
-    # Converts the link in a qr code and saves the image
-    img = qrcode.make(url_to_send)
-    img.save("form_qr_code.png")
-
-    # Opens the image in byte format, since that's what we can send
-    file = open("form_qr_code.png", "rb")
-
-    return Response(content=file.read(), media_type="image/png")
 
 
 @router.get(path="/{form_id}",

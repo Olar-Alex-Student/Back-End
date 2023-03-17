@@ -5,6 +5,7 @@ import uvicorn
 from api.users import user_router
 from api.forms import form_router
 from api.form_submissions import submission_router
+from api.utility import utility_router
 
 from api.authentication import oath2
 
@@ -26,7 +27,6 @@ The Bizonii backend API. 🐂
 * You can **GET** all the info about one form.
 * You can **PUT** to update a form.
 * You can **DELETE** a form.
-* You can **GET** a QR Code to a page to create a new form submission.
 
 ## Submissions
 
@@ -36,6 +36,11 @@ The Bizonii backend API. 🐂
 * You can **PUT** to update a form submission if you are the owner of the form or the one who created the submission.
 * You can **DELETE** a form submission.
 * You can **DELETE** all form submissions for a given form.
+
+## Utility
+
+* You can **GET** a QR Code from a string, for example to get a QR Code to the page where you can fill a submission.
+
 """
 
 app = FastAPI(
@@ -53,6 +58,7 @@ app = FastAPI(
 app.include_router(user_router.router)
 app.include_router(form_router.router)
 app.include_router(submission_router.router)
+app.include_router(utility_router.router)
 app.include_router(oath2.router)
 
 
