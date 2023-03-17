@@ -15,12 +15,27 @@ The Bizonii backend API. 🐂
 
 * You can **GET** all of **your** data.
 * You can **POST** to create **new users**.
+* You can **POST** to log in and get a token.
 * You can **PUT** to update **your** data.
 * You can **DELETE** **your** account.
 
 ## Forms
 
-* _NOT IMPLEMENTED_
+* You can **GET** a list of all forms with the title, id and expiration date.
+* You can **POST** to create a new form.
+* You can **GET** all the info about one form.
+* You can **PUT** to update a form.
+* You can **DELETE** a form.
+* You can **GET** a QR Code to a page to create a new form submission.
+
+## Submissions
+
+* You can **GET** a list of all form submissions.
+* You can **POST** to create a new form submission.
+* You can **GET** all the info about one form submission.
+* You can **PUT** to update a form submission if you are the owner of the form or the one who created the submission.
+* You can **DELETE** a form submission.
+* You can **DELETE** all form submissions for a given form.
 """
 
 app = FastAPI(
