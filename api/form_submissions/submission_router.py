@@ -1,7 +1,9 @@
-import time
 import uuid
 
+from fastapi import APIRouter, Depends, Path, Request, HTTPException, status
+
 import azure.cosmos.exceptions
+import time, datetime
 from fastapi import APIRouter, Depends, Path,  HTTPException, status
 
 from .models import FormSubmissionInDB, FormSubmissionCreate, FormSubmissionUpdate, sorting_Order, sort_Order_to_bool
@@ -106,7 +108,7 @@ async def get_one_form_submission(
 
 ) -> FormSubmissionInDB:
     if current_user.id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only view your submission.")
         # Verifies if the owner of the form and the user are the same
 
     try:
@@ -122,7 +124,7 @@ async def get_one_form_submission(
     # Verifies if the form and the form submission exist in the database
 
     if form.owner_id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own forms")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only view your submission")
         # Checks if the form belongs to the user
 
     form_submits = form_submits_container.read_item(
@@ -147,15 +149,17 @@ async def get_one_form_submission(
 async def get_all_form_submissions_by_form_data(
         sort_order: sorting_Order,
         string_to_find: str,
+        filter_data: str = Path(example="12-12-2012",
+                                description="Form date."),
         user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
                             description="The id of the user."),
         form_id: str = Path(example="67b64054-db84-489a-af92-fe87f9be9899",
-                            description="The id of the form"),
+                            description="The id of the form."),
         current_user: User = Depends(get_current_user)
 
 ) -> list:
     if current_user.id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only view your submissions.")
         # Verifies if the owner is the form and the user are the same
 
     try:
@@ -170,7 +174,7 @@ async def get_all_form_submissions_by_form_data(
                             )
 
     if form.owner_id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own forms")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only view your submissions")
         # Checks if the form belongs to the user
 
     query = """SELECT * FROM c form WHERE form.form_id = @form_id"""
@@ -182,9 +186,11 @@ async def get_all_form_submissions_by_form_data(
                                                  enable_cross_partition_query=True)
 
     form_submissions_list = list(results)
-    form_submissions_list = sorted(form_submissions_list, key=lambda x: x["submission_expiration_time"],
+    form_submissions_list = sorted(form_submissions_list, key=lambda x: x["submission_time"],
                                    reverse=sort_Order_to_bool[sort_order.value])
 
+    filter_data = time.time()
+    print(filter_data)
     mach_list = []
     for submission in form_submissions_list:
         for field in submission["completed_dynamic_fields"]:

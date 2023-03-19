@@ -2,7 +2,6 @@ import asyncio
 import time
 
 from api.database.cosmo_db import form_submits_container
-
 SECONDS_IN_ONE_DAY = 24 * 60 * 60
 
 
