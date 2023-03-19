@@ -1,8 +1,9 @@
+import datetime
 import time
 import uuid
 
 import azure.cosmos.exceptions
-from fastapi import APIRouter, Depends, Path,  HTTPException, status
+from fastapi import APIRouter, Depends, Path, HTTPException, Query, status
 
 from .models import FormSubmissionInDB, FormSubmissionCreate, FormSubmissionUpdate, sorting_Order, sort_Order_to_bool
 from ..users.models import User
@@ -142,38 +143,58 @@ async def get_one_form_submission(
     pass
 
 
-@router.get(path="/{sort_order}/{string_to_find}",
+@router.get(path="",
             tags=["form submission"])
 async def get_all_form_submissions_by_form_data(
-        sort_order: sorting_Order,
-        string_to_find: str,
+        sort_order: sorting_Order = Query(
+            default=sorting_Order.ascending,
+            description="The order of the form submission, sorted by the submission time."),
+        string_to_find: str = Query(default='',
+                                    example="Valentin",
+                                    description="A string to search for in the form submission completed values."),
+        submitted_during: str = Query(default='',
+                                      example="12-19-03-2023",
+                                      description="The date and time when the submission was created."
+                                                  " Specify them as hh-dd-mm-yyyy."),
         user_id: str = Path(example="c6c1b8ae-44cd-4e83-a5f9-d6bbc8eeebcf",
                             description="The id of the user."),
         form_id: str = Path(example="67b64054-db84-489a-af92-fe87f9be9899",
                             description="The id of the form"),
         current_user: User = Depends(get_current_user)
 
-) -> list:
+) -> list[FormSubmissionInDB]:
+    # Verify if it's the form owner
     if current_user.id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can delete only your own data.")
-        # Verifies if the owner is the form and the user are the same
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="You can't access other's people submissions.")
 
+    # Verify if the form still exists
+    # If it doesn't exist we can delete all it's submissions
     try:
         form = get_formular_from_db(form_id)
     except azure.cosmos.exceptions.CosmosResourceNotFoundError:
-        form_submit = form_submits_container.delete_item(
-            item=form_id,
-            partition_key=form_id,
-        )
+        await delete_all_forms_submission(form_id, user_id)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Form ''{form_id}'' does not exist."
                             )
 
+    # Verify if its the form owner
     if form.owner_id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own forms")
-        # Checks if the form belongs to the user
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="You can't access other's people submissions.")
 
-    query = """SELECT * FROM c form WHERE form.form_id = @form_id"""
+    # Query all the form submissions
+    query = """
+SELECT 
+
+submission.id, 
+submission.form_id, 
+submission.completed_dynamic_fields, 
+submission.user_that_completed_id, 
+submission.submission_creation_time, 
+submission.submission_expiration_time 
+
+FROM c submission WHERE submission.form_id = @form_id"""
 
     params = [dict(name="@form_id", value=form_id)]
 
@@ -181,15 +202,53 @@ async def get_all_form_submissions_by_form_data(
                                                  parameters=params,
                                                  enable_cross_partition_query=True)
 
-    form_submissions_list = list(results)
-    form_submissions_list = sorted(form_submissions_list, key=lambda x: x["submission_expiration_time"],
+    # Sort the submissions by the expiration time
+    form_submissions_list = sorted(list(results),
+                                   key=lambda x: x["submission_expiration_time"],
                                    reverse=sort_Order_to_bool[sort_order.value])
 
-    mach_list = []
-    for submission in form_submissions_list:
-        for field in submission["completed_dynamic_fields"]:
-            if string_to_find in str(submission["completed_dynamic_fields"][field]):
-                mach_list.append(submission)
+    # If they specified a string to find, remove the ones that don't meet the criteria
+    if string_to_find:
+        mach_list = []
+
+        for submission in form_submissions_list:
+            for i, field in enumerate(submission["completed_dynamic_fields"]):
+
+                # The requirements of the app say that the search string should be only between the first
+                # 5 completed fields of the submission
+                if i >= 5:
+                    break
+
+                if string_to_find in str(submission["completed_dynamic_fields"][field]):
+                    mach_list.append(submission)
+    else:
+        mach_list = form_submissions_list
+
+    # Give only the submissions that happened during this time
+    if submitted_during:
+        form_submissions_list = mach_list
+        mach_list = []
+
+        hour, day, month, year = [int(i) if i.isnumeric() else -1 for i in submitted_during.split('-')]
+
+        for submission in form_submissions_list:
+            submitted_at = datetime.datetime.fromtimestamp(submission['submission_creation_time'])
+
+            # For all the time specifiers, if they are not -1 (this means they were given by the user),
+            # verify if the submission was created during this time
+            if 0 <= hour != submitted_at.hour:
+                continue
+
+            if 0 <= day != submitted_at.day:
+                continue
+
+            if 0 <= month != submitted_at.month:
+                continue
+
+            if 0 <= year != submitted_at.year:
+                continue
+
+            mach_list.append(submission)
 
     return mach_list
 
