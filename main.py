@@ -41,6 +41,7 @@ The Bizonii backend API. 🐂
 * You can **PUT** to update a form submission if you are the owner of the form or the one who created the submission.
 * You can **DELETE** a form submission.
 * You can **DELETE** all form submissions for a given form.
+* You can **GET** a pdf with the completed submission.
 
 ## Utility
 
