@@ -32,6 +32,7 @@ class DocumentSection(BaseModel):
 
 
 class DynamicFieldData(BaseModel):
+    label: str
     placeholder: str
     type: FieldType
     mandatory: bool
@@ -54,18 +55,18 @@ class FormularCreate(BaseModel):
                 "sections": [
                     {
                         "scan_document_type": "student_card",
-                        "text": "Studentul <nume> , din grupa , anul <anul>. Aleg optiunea <opt1>."
+                        "text": "Studentul {nume} , din grupa , anul {anul}. Aleg optiunea {opt1}."
                     },
                     {
                         "scan_document_type": "identity_card",
-                        "text": "Cu CNP <cnp>, seria , nr."
+                        "text": "Cu CNP {cnp}, seria , nr."
                     }
                 ],
                 "dynamic_fields": [
-                    {"placeholder": "nume", "type": "text", "keywords": ["name", "nume", "first_name"], "mandatory": True},
-                    {"placeholder": "cnp", "type": "number", "keywords": ["cnp", "security number"], "mandatory": True},
-                    {"placeholder": "anul", "type": "single-choice", "mandatory": True, "options": ["1", "2", "3", "4"]},
-                    {"placeholder": "opt1", "type": "multiple-choice", "mandatory": True, "options": ["Creoin", "Pix", "Caiet", "Carte"]},
+                    {"label": "First name", "placeholder": "nume", "type": "text", "keywords": ["name", "nume", "first_name"], "mandatory": True},
+                    {"label": "Security number", "placeholder": "cnp", "type": "number", "keywords": ["cnp", "security number"], "mandatory": True},
+                    {"label": "Year in university", "placeholder": "anul", "type": "single-choice", "mandatory": True, "options": ["1", "2", "3", "4"]},
+                    {"label": "Option 1", "placeholder": "opt1", "type": "multiple-choice", "mandatory": True, "options": ["Creoin", "Pix", "Caiet", "Carte"]},
                 ]
             }
         }
@@ -86,18 +87,22 @@ class FormularInDB(FormularCreate):
                 "sections": [
                     {
                         "scan_document_type": "student_card",
-                        "text": "Studentul <nume> <prenume>, din grupa <grupa>, anul <anul>. Aleg optiunea <opt1>."
+                        "text": "Studentul {nume} {prenume}, din grupa {grupa}, anul {anul}. Aleg optiunea {opt1}."
                     },
                     {
                         "scan_document_type": "identity_card",
-                        "text": "Cu CNP <cnp>, seria <seria>, nr <nr_carte_identitate>."
+                        "text": "Cu CNP {cnp}, seria {seria}, nr {nr_carte_identitate}."
                     }
                 ],
                 "dynamic_fields": [
-                    {"placeholder": "nume", "type": "text", "keywords": ["name", "nume", "first_name"], "mandatory": True},
-                    {"placeholder": "cnp", "type": "number", "keywords": ["cnp", "security number"], "mandatory": True},
-                    {"placeholder": "anul", "type": "single-choice", "mandatory": True, "options": ["1", "2", "3", "4"]},
-                    {"placeholder": "opt1", "type": "multiple-choice", "mandatory": True, "options": ["Creoin", "Pix", "Caiet", "Carte"]},
+                    {"label": "First name", "placeholder": "nume", "type": "text",
+                     "keywords": ["name", "nume", "first_name"], "mandatory": True},
+                    {"label": "Security number", "placeholder": "cnp", "type": "number",
+                     "keywords": ["cnp", "security number"], "mandatory": True},
+                    {"label": "Year in university", "placeholder": "anul", "type": "single-choice", "mandatory": True,
+                     "options": ["1", "2", "3", "4"]},
+                    {"label": "Option 1", "placeholder": "opt1", "type": "multiple-choice", "mandatory": True,
+                     "options": ["Creoin", "Pix", "Caiet", "Carte"]},
                 ]
             }
         }

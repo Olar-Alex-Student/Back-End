@@ -26,6 +26,9 @@ async def delete_expired_form_submissions():
         # Delete all the expired submissions
         for item in items:
             if item['submission_expiration_time'] <= current_time:
-                form_submits_container.delete_item(item)
+                form_submits_container.delete_item(
+                    item=item['id'],
+                    partition_key=item['id']
+                )
 
         await asyncio.sleep(SECONDS_IN_ONE_DAY)

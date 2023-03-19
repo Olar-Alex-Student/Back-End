@@ -90,7 +90,7 @@ def get_short_user_forms_from_db(user_id: str) -> PaginatedFormularResponse:
 
 def get_tokens_from_rtf_text(text: str):
     """
-    Example: "Studentul <nume>, <prenume>, <grupa>" => ['nume', 'prenume', 'grupa']
+    Example: "Studentul {nume}, {prenume}, {grupa}" => ['nume', 'prenume', 'grupa']
 
     :param text: Text in RFT format
     :return: a list of tokens extracted from the text
@@ -99,10 +99,10 @@ def get_tokens_from_rtf_text(text: str):
     token = ""
 
     for letter in text:
-        if letter == '<':
+        if letter == '{':
             token = ''
 
-        if letter == '>' and len(token) > 1:
+        if letter == '}' and len(token) > 1:
             tokens.append(token[1:])
 
         token += letter
