@@ -27,7 +27,6 @@ async def add_form_submission(
         user_id: str,
         form_id: str,
         new_from_submission: FormSubmissionCreate,
-        current_user: User = Depends(get_current_user)
 ) -> FormSubmissionInDB:
     # Check if form exists
     form = get_formular_from_db(form_id)
@@ -45,7 +44,7 @@ async def add_form_submission(
     new_from_submission = FormSubmissionInDB(
         id=new_submission_id,
         form_id=form_id,
-        user_that_completed_id=current_user.id,
+        user_that_completed_id=user_id,
         submission_expiration_time=form_submission_expiration_date,
         submission_creation_time=current_time,
         **new_from_submission.dict()

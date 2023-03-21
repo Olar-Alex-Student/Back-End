@@ -92,7 +92,6 @@ async def get_form_data(
                             description="The id of the user."),
         form_id: str = Path(example="67b64054-db84-489a-af92-fe87f9be9899",
                             description="The name of the form"),
-        current_user: User = Depends(get_current_user),
 ) -> FormularInDB:
 
     # All users should be allowed to fetch a form, so they can complete it
