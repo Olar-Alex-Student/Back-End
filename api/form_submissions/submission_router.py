@@ -324,64 +324,67 @@ async def get_submission_pdf(
                             description="The id of the form"),
         current_user: User = Depends(get_current_user)
 
-) -> Response:
-    # Verifies if the owner of the form and the user are the same
-    if current_user.id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail="You can create ")
-
+):
     try:
-        form = get_formular_from_db(form_id)
-    except azure.cosmos.exceptions.CosmosResourceNotFoundError:
-        await delete_all_forms_submission(form_id, user_id)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Form '{form_id}' does not exist."
-                            )
+        # Verifies if the owner of the form and the user are the same
+        if current_user.id != user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="You can create ")
 
-    # Verify if it's the owner of the form
-    if form.owner_id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own forms")
-        # Checks if the form belongs to the user
+        try:
+            form = get_formular_from_db(form_id)
+        except azure.cosmos.exceptions.CosmosResourceNotFoundError:
+            await delete_all_forms_submission(form_id, user_id)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f"Form '{form_id}' does not exist."
+                                )
 
-    # Reads the form submit from the database
-    form_submission = form_submits_container.read_item(
-        item=form_submission_id,
-        partition_key=form_submission_id,
-    )
+        # Verify if it's the owner of the form
+        if form.owner_id != user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own forms")
+            # Checks if the form belongs to the user
 
-    form_submission = FormSubmissionInDB(**form_submission)
+        # Reads the form submit from the database
+        form_submission = form_submits_container.read_item(
+            item=form_submission_id,
+            partition_key=form_submission_id,
+        )
 
-    if form_submission.form_id != form.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail="Forms id is not the same as form submission id")
+        form_submission = FormSubmissionInDB(**form_submission)
 
-    pdf = fpdf.FPDF()
+        if form_submission.form_id != form.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Forms id is not the same as form submission id")
 
-    pdf.add_page()
+        pdf = fpdf.FPDF()
 
-    pdf.set_font("Arial", size=20)
+        pdf.add_page()
 
-    pdf.cell(200, 10, txt=form.title, ln=1, align='C')
-    pdf.cell(200, 10, txt=' ', ln=1, align='C')
+        pdf.set_font("Arial", size=20)
 
-    pdf.set_font("Arial", size=15)
+        pdf.cell(200, 10, txt=form.title, ln=1, align='C')
+        pdf.cell(200, 10, txt=' ', ln=1, align='C')
 
-    for section in form.sections:
-        text = section.text
+        pdf.set_font("Arial", size=15)
 
-        for field in form_submission.completed_dynamic_fields:
-            completed_value = form_submission.completed_dynamic_fields[field]
-            field_token_in_text = '{' + field + '}'
+        for section in form.sections:
+            text = section.text
 
-            text = text.replace(field_token_in_text, str(completed_value))
+            for field in form_submission.completed_dynamic_fields:
+                completed_value = form_submission.completed_dynamic_fields[field]
+                field_token_in_text = '{' + field + '}'
 
-        pdf.cell(200, 10, txt=text, ln=1, align='L')
+                text = text.replace(field_token_in_text, str(completed_value))
 
-    pdf.output("./generated_data/completed_form.pdf")
+            pdf.cell(200, 10, txt=text, ln=1, align='L')
 
-    pdf.close()
+        pdf.output("./generated_data/completed_form.pdf")
 
-    with open("./generated_data/completed_form.pdf", 'rb') as file:
-        headers = {'Content-Disposition': 'attachment; filename="out.pdf"'}
-        return Response(file.read(), headers=headers, media_type='application/pdf')
+        pdf.close()
+
+        with open("./generated_data/completed_form.pdf", 'rb') as file:
+            headers = {'Content-Disposition': 'attachment; filename="out.pdf"'}
+            return Response(file.read(), headers=headers, media_type='application/pdf')
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
