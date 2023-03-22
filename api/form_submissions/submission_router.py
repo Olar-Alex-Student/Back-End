@@ -373,7 +373,7 @@ async def get_submission_pdf(
             completed_value = form_submission.completed_dynamic_fields[field]
             field_token_in_text = '{' + field + '}'
 
-            text = text.replace(field_token_in_text, completed_value)
+            text = text.replace(field_token_in_text, str(completed_value))
 
         pdf.cell(200, 10, txt=text, ln=1, align='L')
 
