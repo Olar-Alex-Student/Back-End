@@ -3,7 +3,7 @@
  
 Aplicația a fost realizată folosind fastAPI, un framework rapid ce folosește Python 3.7+
 
-Aceasta dezvoltă un API care folosește o baza de date a unor utilizatori sunt logați pe
+Aceasta dezvoltă un API care folosește o bază de date a unor utilizatori sunt logați pe
 un site de completare automată a unor formulare.
 
 ### Comanda pe care o folosim pentru a menține serverul pornit este:
@@ -45,25 +45,25 @@ un site de completare automată a unor formulare.
 5. #### PUT FORM: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}
    - [ ] Actualizează informații despre un formular.
 6. #### DELETE FORM: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}
-   - [ ] Șterge un formular folosindu-se de id-ul primit pentru formular si utilizator.
+   - [ ] Șterge un formular folosindu-se de id-ul primit pentru formular și utilizator.
 
 
 ## FORM SUBMISSIONS:
 1. #### GET FORM SUBMISSIONS: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions
-   - [ ] Returneaza toate formularele completate dupa un anumit model.
+   - [ ] Returnează toate formularele completate după un anumit model.
 2. #### GET ONE FORM SUBMISSION: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions/{form_submission_id}
-   - [ ] Cauta si returneaza o submisie a unui formular dupa ID.
+   - [ ] Caută și returnează o submisie a unui formular după ID.
 3. #### POST FORM SUBMISSION: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions
-   - [ ] Creaza o submisie pentru un anumit formular.
+   - [ ] Crează o submisie pentru un anumit formular.
 4. #### DELETE ALL FORM SUBMISSIONS: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions
-   - [ ] Sterge toate submisiile unui formular.
+   - [ ] Șterge toate submisiile unui formular.
 5. #### DELETE ONE FORM SUBMISSION: https://bizoni-backend-apis.azurewebsites.net/users/{user_id}/forms/{form_id}/submissions/{form_submission_id}
-   - [ ] Sterge o submisie a unui formular folosind ID-ul acesteia.
+   - [ ] Șterge o submisie a unui formular folosind ID-ul acesteia.
 
 
 ## Workflow:
 - Prima dată când un user intră pe site acesta este direcționat către "home page".
-- Acolo acesta are doua opțiuni, înregistrare  sau autentificare. Când prima este aleasă acesta are de completat
+- Acolo acesta are două opțiuni, înregistrare sau autentificare. Când prima este aleasă acesta are de completat
 câteva câmpuri urmând restricțiile impuse și după ce a introdus toate datele este apelată metoda "POST USER".
 - A doua opțiune îi cere acestuia să introducă email-ul și parola iar în urma validării acestora este apelată metoda "GET USER".
 După ce este autentificat acesta are acces la informațiile proprii și le poate modifica "PUT USER" sau își poate șterge
@@ -75,9 +75,9 @@ formularele ce îi aparțin.
 - De asemenea un utilizator poate crea un formular "POST FORM" după propriile cerințe pe care ulterior îl poate modifica
 "PUT FORM", permițând acestuia să facă un cod QR pentru formularul respectiv, și când nu îi mai este de folos îl poate
 șterge "DELETE FORM".
-- Dupa ce un user completeaza toate campurile necesare unui formular se face validarea acestora si se salveaza in baza de date
-folosindu-se medota "POST FORM SUBMISSION". Acel utilizator va avea mai apoi posibilitatea de a vizualiza un formular completat
-utilizandu-se metoda "GET FORM SUBMISSION" sau le va putea vizualiza pe toate care contin un sir de caractere specificat
+- După ce un user completează toate câmpurile necesare unui formular se face validarea acestora și se salveaza în baza de date
+folosindu-se metoda "POST FORM SUBMISSION". Acel utilizator va avea mai apoi posibilitatea de a vizualiza un formular completat
+utilizandu-se metoda "GET FORM SUBMISSION" sau le va putea vizualiza pe toate care conțin un șir de caractere specificat
 "GET ALL FORM SUBMISSIONS BY FORM DATA".
-- Un formular completat poate fi ulterior editat metoda "EDIT FORM SUBMISSION" venindu-ne in ajutor.
-- Iar la cerere acestea pot fi sterse individual "DELETE FORM SUBMISSION" sau colectiv "DELETE ALL FORM SUBMISSIONS".
+- Un formular completat poate fi ulterior editat metoda "EDIT FORM SUBMISSION" venindu-ne în ajutor.
+- Iar la cerere acestea pot fi șterse individual "DELETE FORM SUBMISSION" sau colectiv "DELETE ALL FORM SUBMISSIONS".
